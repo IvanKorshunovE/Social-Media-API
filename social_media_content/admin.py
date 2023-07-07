@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from social_media_content.models import Post
+
+admin.site.register(Post)
