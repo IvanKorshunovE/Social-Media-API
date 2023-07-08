@@ -3,8 +3,14 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include(
+    path("api/content/", include(
         "social_media_content.urls",
-        namespace="social_media_content")
+        namespace="social_media_content"
+    )
+         ),
+    path("api/users/", include(
+        "user.urls",
+        namespace="user"
+    )
          ),
 ]
