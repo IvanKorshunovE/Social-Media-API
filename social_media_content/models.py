@@ -15,6 +15,9 @@ class Post(models.Model):
         related_name='liked_posts',
     )
 
+    def __str__(self):
+        return self.title
+
 
 class Comment(models.Model):
     text = models.TextField()
@@ -23,3 +26,6 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name="comments",
     )
+
+    def __str__(self):
+        return self.text
