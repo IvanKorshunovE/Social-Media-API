@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractUser,
     BaseUserManager,
@@ -46,5 +47,14 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    birth_date = models.DateField(null=True)
+    place_of_birth = models.CharField(max_length=255, null=True)
+    user_information = models.TextField(blank=True, null=True)
+    followers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="user_followers",
+    )
+    # photo
 
     objects = UserManager()

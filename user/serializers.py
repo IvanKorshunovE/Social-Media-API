@@ -32,3 +32,31 @@ class UserSerializer(UserListSerializer):
             user.save()
 
         return user
+
+
+class CreateUserSerializer(UserListSerializer):
+    followers = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=True
+    )
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "id",
+            "email",
+            "password",
+            "is_staff",
+            "birth_date",
+            "place_of_birth",
+            "user_information",
+            "followers",
+        )
+        read_only_fields = ("is_staff",)
+        extra_kwargs = {"password": {"write_only": True, "min_length": 5}}
+
+
+class ReadOnlyUserFollowersSerializer(UserListSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "email")
+        read_only_fields = ("id", "email")
