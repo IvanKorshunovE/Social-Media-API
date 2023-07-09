@@ -1,17 +1,22 @@
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets, generics, status, mixins
+from rest_framework import generics, status, mixins
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from user.serializers import (
     CreateUserSerializer,
     ReadOnlyUserFollowersSerializer,
     LogoutSerializer
 )
+
+
+class UserPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 class UserViewSet(
@@ -22,6 +27,7 @@ class UserViewSet(
 ):
     queryset = get_user_model().objects.all()
     serializer_class = CreateUserSerializer
+    pagination_class = UserPagination
 
     def get_serializer_class(self):
         if self.action == "subscribe":
@@ -30,7 +36,7 @@ class UserViewSet(
         return CreateUserSerializer
 
     @action(
-        methods=["GET", "PATCH"],
+        methods=["GET", "POST"],
         detail=True,
         url_path="subscribe",
         permission_classes=[IsAuthenticated],
@@ -40,9 +46,14 @@ class UserViewSet(
         me = self.request.user
         if self.request.method == "GET":
             subscribers = user_you_want_subscribe.followers.all()
+            page = self.paginate_queryset(subscribers)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
             serializer = self.get_serializer(subscribers, many=True)
             return Response(serializer.data)
-        if self.request.method == "PATCH":
+        if self.request.method == "POST":
             if me == user_you_want_subscribe:
                 return Response(
                     {
@@ -87,26 +98,13 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class LogoutView(APIView):
+class LogoutAPIView(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = LogoutSerializer
 
     def post(self, request):
-        try:
-            refresh_token = request.data["refresh_token"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-            return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-#
-# class LogoutAPIView(generics.GenericAPIView):
-#     permission_classes = (IsAuthenticated,)
-#     serializer_class = LogoutSerializer
-#
-#     def post(self, request):
-#         serializer = self.serializer_class(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-#
-#         return Response(status.HTTP_204_NO_CONTENT)
+        return Response(status.HTTP_204_NO_CONTENT)

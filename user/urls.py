@@ -9,7 +9,7 @@ from user.views import (
     UserViewSet,
     CreateUserView,
     ManageUserView,
-    LogoutView
+    LogoutAPIView
 )
 
 router = routers.DefaultRouter()
@@ -21,7 +21,7 @@ urlpatterns = [
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
-    path('logout/', LogoutView.as_view(), name='auth_logout'),
+    path('logout/', LogoutAPIView.as_view(), name='auth_logout'),
     path("me/", ManageUserView.as_view(), name="manage"),
     path("", include(router.urls))
 ]
