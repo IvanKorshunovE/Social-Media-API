@@ -29,6 +29,34 @@ class UserViewSet(
     serializer_class = CreateUserSerializer
     pagination_class = UserPagination
 
+    def get_queryset(self):
+        """
+        Implement search using username
+        and other criteria
+        """
+        queryset = self.queryset
+
+        username = self.request.query_params.get("username")
+        birth_date = self.request.query_params.get("birth_date")
+        place_of_birth = self.request.query_params.get("place_of_birth")
+
+        if username:
+            queryset = queryset.filter(
+                username__icontains=username
+            )
+
+        if birth_date:
+            queryset = queryset.filter(
+                birth_date=birth_date
+            )
+
+        if place_of_birth:
+            queryset = queryset.filter(
+                place_of_birth__icontains=place_of_birth
+            )
+
+        return queryset.distinct()
+
     def get_serializer_class(self):
         if self.action == "subscribe":
             return ReadOnlyUserFollowersSerializer
@@ -44,6 +72,7 @@ class UserViewSet(
     def subscribe(self, request, pk=None):
         user_you_want_subscribe = self.get_object()
         me = self.request.user
+
         if self.request.method == "GET":
             subscribers = user_you_want_subscribe.followers.all()
             page = self.paginate_queryset(subscribers)
@@ -53,6 +82,7 @@ class UserViewSet(
 
             serializer = self.get_serializer(subscribers, many=True)
             return Response(serializer.data)
+
         if self.request.method == "POST":
             if me == user_you_want_subscribe:
                 return Response(
@@ -61,6 +91,7 @@ class UserViewSet(
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
             has_subscribed = user_you_want_subscribe.followers.filter(
                 id=me.id
             ).exists()
