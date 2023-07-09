@@ -5,6 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = get_user_model()
         fields = ("id", "email", "password", "is_staff")
@@ -48,6 +49,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class ReadOnlyUserFollowersSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = get_user_model()
         fields = ("id", "email")
@@ -66,3 +68,10 @@ class LogoutSerializer(serializers.Serializer):
             RefreshToken(self.token).blacklist()
         except TokenError:
             self.fail("bad_token")
+
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = ("id", "profile_photo")
