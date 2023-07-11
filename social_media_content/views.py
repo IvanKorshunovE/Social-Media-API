@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from social_media_content.models import Post
@@ -10,9 +12,32 @@ from social_media_content.serializers import (
 )
 
 
+class PostPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = (
+        Post.objects.all().prefetch_related(
+            "likes", "comments"
+        ).select_related("user")
+    )
     serializer_class = PostSerializer
+    pagination_class = PostPagination
+
+    def get_permissions(self):
+        if self.action in [
+            "create",
+            "update",
+            "partial_update",
+            "destroy"
+        ]:
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthenticatedOrReadOnly]
+        return [permission() for permission in permission_classes]
 
     @staticmethod
     def _params_to_strings(qs):
@@ -20,21 +45,25 @@ class PostViewSet(viewsets.ModelViewSet):
         return [str(name) for name in qs.split(",")]
 
     def get_queryset(self):
-        ids_of_who_i_follow = list(
-            self.request.user.following.values_list(
-                "id",
-                flat=True
+        queryset = self.queryset
+        if self.request.user.is_authenticated:
+            ids_of_who_i_follow = list(
+                self.request.user.following.values_list(
+                    "id",
+                    flat=True
+                )
             )
-        )
-        my_id = self.request.user.id
-        ids_of_who_i_follow.append(my_id)
-        queryset = self.queryset.filter(
-            user_id__in=ids_of_who_i_follow
-        ).distinct()
+            my_id = self.request.user.id
+            ids_of_who_i_follow.append(my_id)
+            queryset = queryset.filter(
+                user_id__in=ids_of_who_i_follow
+            ).distinct()
         tags = self.request.query_params.get("tags")
         if tags:
             tags = self._params_to_strings(tags)
-            queryset = self.queryset.filter(tags__name__in=tags)
+            queryset = queryset.filter(
+                tags__name__in=tags
+            )
         return queryset.distinct()
 
     @action(
@@ -103,6 +132,11 @@ class PostViewSet(viewsets.ModelViewSet):
         )
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this post.")
+        instance.delete()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
