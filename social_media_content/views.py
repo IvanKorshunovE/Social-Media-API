@@ -11,6 +11,11 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+    @staticmethod
+    def _params_to_strings(qs):
+        """Converts a list of string IDs to a list of integers"""
+        return [str(name) for name in qs.split(",")]
+
     def get_queryset(self):
         ids_of_who_i_follow = list(
             self.request.user.following.values_list(
@@ -22,7 +27,11 @@ class PostViewSet(viewsets.ModelViewSet):
         ids_of_who_i_follow.append(my_id)
         queryset = self.queryset.filter(
             user_id__in=ids_of_who_i_follow
-        )
+        ).distinct()
+        tags = self.request.query_params.get("tags")
+        if tags:
+            tags = self._params_to_strings(tags)
+            queryset = self.queryset.filter(tags__name__in=tags)
         return queryset.distinct()
 
     @action(

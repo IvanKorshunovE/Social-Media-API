@@ -90,7 +90,7 @@ class UserViewSet(
     @action(
         methods=["GET"],
         detail=False,
-        url_path="who_i_am_following",
+        url_path="following",
         permission_classes=[IsAuthenticated],
     )
     def who_i_am_following(self, request):

@@ -2,6 +2,19 @@ from django.conf import settings
 from django.db import models
 
 
+class Tags(models.Model):
+    name = models.CharField(
+        max_length=50,
+        unique=True
+    )
+
+    class Meta:
+        verbose_name_plural = "Tags"
+
+    def __str__(self):
+        return self.name
+
+
 class Post(models.Model):
     title = models.CharField(null=False, max_length=100)
     text = models.TextField()
@@ -12,11 +25,17 @@ class Post(models.Model):
     )
     likes = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='liked_posts',
+        related_name="liked_posts",
+    )
+    tags = models.ManyToManyField(
+        Tags, related_name="tagged_posts"
     )
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        ordering = ["-created"]
 
 
 class Comment(models.Model):
