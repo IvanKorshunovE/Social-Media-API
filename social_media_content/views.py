@@ -1,10 +1,13 @@
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from social_media_content.models import Post, Comment
-from social_media_content.serializers import PostSerializer, CommentSerializer
+from social_media_content.models import Post
+from social_media_content.serializers import (
+    PostSerializer,
+    CommentSerializer
+)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -13,7 +16,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def _params_to_strings(qs):
-        """Converts a list of string IDs to a list of integers"""
+        """Converts a string to a list of tag names"""
         return [str(name) for name in qs.split(",")]
 
     def get_queryset(self):
@@ -37,7 +40,7 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(
         methods=["PATCH"],
         detail=True,
-        url_path="like-this-post",
+        url_path="like",
         permission_classes=[IsAuthenticated],
     )
     def like_this_post(self, request, pk=None):
@@ -87,6 +90,19 @@ class PostViewSet(viewsets.ModelViewSet):
             serializer.save(post=post, user=request.user)
 
             return Response(status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        url_path="liked_posts",
+        permission_classes=[IsAuthenticated],
+    )
+    def liked_posts(self, request):
+        queryset = self.get_queryset().filter(
+            likes=self.request.user
+        )
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
