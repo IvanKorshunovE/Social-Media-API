@@ -8,9 +8,11 @@ from social_media_content.models import (
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    left_by = serializers.IntegerField(source="user_id", read_only=True)
+
     class Meta:
         model = Comment
-        fields = ("text", )
+        fields = ("text", "left_by")
 
 
 class UserSerializer(serializers.ModelSerializer):

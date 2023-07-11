@@ -1,15 +1,29 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social_media_content.models import Post, Comment
-from social_media_content.serializers import PostSerializer, CommentSerializer, PostDetailAddCommentSerializer
+from social_media_content.serializers import PostSerializer, CommentSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+
+    def get_queryset(self):
+        ids_of_who_i_follow = list(
+            self.request.user.following.values_list(
+                "id",
+                flat=True
+            )
+        )
+        my_id = self.request.user.id
+        ids_of_who_i_follow.append(my_id)
+        queryset = self.queryset.filter(
+            user_id__in=ids_of_who_i_follow
+        )
+        return queryset.distinct()
 
     @action(
         methods=["PATCH"],
@@ -22,7 +36,9 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = request.user
 
-        has_liked = post.likes.filter(id=user.id).exists()
+        has_liked = post.likes.filter(
+            id=user.id
+        ).exists()
 
         if has_liked:
             post.likes.remove(user)
@@ -44,26 +60,24 @@ class PostViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def comments(self, request, pk=None):
-        if self.request.method == 'GET':
+        if self.request.method == "GET":
             post = self.get_object()
             comments = post.comments.all()
-            serializer = CommentSerializer(comments, many=True)
+            serializer = CommentSerializer(
+                comments, many=True
+            )
 
             return Response(serializer.data)
 
-        if self.request.method == 'POST':
+        if self.request.method == "POST":
             post = self.get_object()
-            serializer = CommentSerializer(data=request.data)
-            if serializer.is_valid():
-                # user = serializer.data['user']
-                text = serializer.data['text']
-                Comment.objects.create(
-                    post=post,
-                    # user=user,
-                    text=text
-                )
+            serializer = CommentSerializer(
+                data=request.data
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(post=post, user=request.user)
 
-                return Response(status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

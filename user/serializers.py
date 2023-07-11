@@ -14,9 +14,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
-    followers = serializers.PrimaryKeyRelatedField(
-        many=True, read_only=True
+    followers = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="username"
     )
+    followings = serializers.IntegerField(read_only=True)
+    profile_photo = serializers.ImageField(read_only=True)
 
     class Meta:
         model = get_user_model()
@@ -25,10 +27,13 @@ class CreateUserSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "is_staff",
+            "username",
             "birth_date",
             "place_of_birth",
             "user_information",
+            "followings",
             "followers",
+            "profile_photo"
         )
         read_only_fields = ("is_staff",)
         extra_kwargs = {"password": {"write_only": True, "min_length": 5}}

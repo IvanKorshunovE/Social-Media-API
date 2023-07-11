@@ -26,6 +26,11 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name="comments",
     )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="users_comments",
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return self.text

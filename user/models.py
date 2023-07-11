@@ -54,7 +54,7 @@ def profile_picture_file_path(instance, file_name):
 
 
 class User(AbstractUser):
-    username = None
+    username = models.CharField(_("username"), max_length=150, blank=True)
     email = models.EmailField(_("email address"), unique=True)
 
     USERNAME_FIELD = "email"
@@ -63,9 +63,9 @@ class User(AbstractUser):
     birth_date = models.DateField(null=True)
     place_of_birth = models.CharField(max_length=255, null=True)
     user_information = models.TextField(blank=True, null=True)
-    followers = models.ManyToManyField(
+    following = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name="user_followers",
+        related_name="followers",
     )
     profile_photo = models.ImageField(
         null=True, upload_to=profile_picture_file_path

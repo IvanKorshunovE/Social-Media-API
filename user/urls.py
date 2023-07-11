@@ -29,6 +29,7 @@ urlpatterns = [
         UploadProfilePictureView.as_view(),
         name="upload_profile_picture"
     ),
+
     path("", include(router.urls))
 ]
 
