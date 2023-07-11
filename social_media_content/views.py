@@ -1,11 +1,17 @@
+from urllib.parse import urlencode
+
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
-from social_media_content.models import Post
+from social_media_content.models import Post, Comment
+from social_media_content.permissions import IsOwnerOrReadOnly
 from social_media_content.serializers import (
     PostSerializer,
     CommentSerializer
@@ -18,6 +24,25 @@ class PostPagination(PageNumberPagination):
     max_page_size = 100
 
 
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        queryset = self.queryset
+        post_id = self.request.query_params.get("post_id")
+        if post_id:
+            queryset = queryset.filter(post_id=post_id)
+        return queryset.distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(
+            post_id=self.request.query_params.get("post_id"),
+            user_id=self.request.user.id
+        )
+
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = (
         Post.objects.all().prefetch_related(
@@ -28,13 +53,8 @@ class PostViewSet(viewsets.ModelViewSet):
     pagination_class = PostPagination
 
     def get_permissions(self):
-        if self.action in [
-            "create",
-            "update",
-            "partial_update",
-            "destroy"
-        ]:
-            permission_classes = [IsAuthenticated]
+        if self.action in ["update", "partial_update", "destroy"]:
+            permission_classes = [IsOwnerOrReadOnly]
         else:
             permission_classes = [IsAuthenticatedOrReadOnly]
         return [permission() for permission in permission_classes]
@@ -103,12 +123,22 @@ class PostViewSet(viewsets.ModelViewSet):
     def comments(self, request, pk=None):
         if self.request.method == "GET":
             post = self.get_object()
-            comments = post.comments.all()
-            serializer = CommentSerializer(
-                comments, many=True
+            post_id = post.id
+            query_params = urlencode(
+                {"post_id": post_id}
             )
+            redirect_url = reverse(
+                "social_media_content:comment-list"
+            ) + "?" + query_params
+            return redirect(redirect_url)
 
-            return Response(serializer.data)
+            # post = self.get_object()
+            # comments = post.comments.all()
+            # serializer = CommentSerializer(
+            #     comments, many=True
+            # )
+            #
+            # return Response(serializer.data)
 
         if self.request.method == "POST":
             post = self.get_object()
