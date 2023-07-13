@@ -3,10 +3,7 @@ from django.db import models
 
 
 class Tags(models.Model):
-    name = models.CharField(
-        max_length=50,
-        unique=True
-    )
+    name = models.CharField(max_length=50, unique=True)
 
     class Meta:
         verbose_name_plural = "Tags"
@@ -27,9 +24,7 @@ class Post(models.Model):
         settings.AUTH_USER_MODEL,
         related_name="liked_posts",
     )
-    tags = models.ManyToManyField(
-        Tags, related_name="tagged_posts"
-    )
+    tags = models.ManyToManyField(Tags, related_name="tagged_posts")
 
     def __str__(self):
         return self.title
@@ -48,7 +43,7 @@ class Comment(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="users_comments",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):

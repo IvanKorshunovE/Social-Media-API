@@ -8,10 +8,7 @@ from social_media_content.models import (
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    left_by = serializers.IntegerField(
-        source="user_id",
-        read_only=True
-    )
+    left_by = serializers.IntegerField(source="user_id", read_only=True)
 
     class Meta:
         model = Comment
@@ -25,23 +22,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    likes = UserSerializer(
-        many=True, read_only=True
-    )
+    likes = UserSerializer(many=True, read_only=True)
     comments = CommentSerializer(read_only=True, many=True)
     user = UserSerializer(read_only=True)
 
     class Meta:
         model = Post
-        fields = (
-            "id",
-            "title",
-            "text",
-            "user",
-            "created",
-            "likes",
-            "comments"
-        )
+        fields = ("id", "title", "text", "user", "created", "likes", "comments")
 
 
 class PostDetailAddCommentSerializer(serializers.ModelSerializer):

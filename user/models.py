@@ -47,8 +47,9 @@ class UserManager(BaseUserManager):
 
 def profile_picture_file_path(instance, file_name):
     _, extension = os.path.splitext(file_name)
-    file_name = (f"{slugify(instance.user_information)}"
-                 f"-uuid{uuid.uuid4()}.{extension}")
+    file_name = (
+        f"{slugify(instance.user_information)}" f"-uuid{uuid.uuid4()}.{extension}"
+    )
 
     return os.path.join("uploads/profile_pictures/", file_name)
 
@@ -67,8 +68,6 @@ class User(AbstractUser):
         settings.AUTH_USER_MODEL,
         related_name="followers",
     )
-    profile_photo = models.ImageField(
-        null=True, upload_to=profile_picture_file_path
-    )
+    profile_photo = models.ImageField(null=True, upload_to=profile_picture_file_path)
 
     objects = UserManager()

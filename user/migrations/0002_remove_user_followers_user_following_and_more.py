@@ -6,44 +6,47 @@ import user.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('user', '0001_initial'),
+        ("user", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='followers',
+            model_name="user",
+            name="followers",
         ),
         migrations.AddField(
-            model_name='user',
-            name='following',
-            field=models.ManyToManyField(related_name='followers', to=settings.AUTH_USER_MODEL),
+            model_name="user",
+            name="following",
+            field=models.ManyToManyField(
+                related_name="followers", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='profile_photo',
-            field=models.ImageField(null=True, upload_to=user.models.profile_picture_file_path),
+            model_name="user",
+            name="profile_photo",
+            field=models.ImageField(
+                null=True, upload_to=user.models.profile_picture_file_path
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='username',
-            field=models.CharField(blank=True, max_length=150, verbose_name='username'),
+            model_name="user",
+            name="username",
+            field=models.CharField(blank=True, max_length=150, verbose_name="username"),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='birth_date',
+            model_name="user",
+            name="birth_date",
             field=models.DateField(null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='place_of_birth',
+            model_name="user",
+            name="place_of_birth",
             field=models.CharField(max_length=255, null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='user_information',
+            model_name="user",
+            name="user_information",
             field=models.TextField(blank=True, null=True),
         ),
     ]

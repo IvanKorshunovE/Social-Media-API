@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('social_media_content', '0003_tags_post_tags'),
+        ("social_media_content", "0003_tags_post_tags"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='post',
-            options={'ordering': ['-created']},
+            name="post",
+            options={"ordering": ["-created"]},
         ),
     ]

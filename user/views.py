@@ -1,17 +1,21 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count
+from django.shortcuts import redirect
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, status, mixins
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from user.serializers import (
     CreateUserSerializer,
     ReadOnlyUserFollowersSerializer,
-    LogoutSerializer, ProfileImageSerializer
+    LogoutSerializer,
+    ProfileImageSerializer,
 )
 
 
@@ -24,7 +28,6 @@ class UserPagination(PageNumberPagination):
 class UserViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
     GenericViewSet,
 ):
     queryset = (
@@ -46,26 +49,30 @@ class UserViewSet(
         username = self.request.query_params.get(
             "username"
         )
-        birth_date = self.request.query_params.get(
-            "birth_date"
-        )
         place_of_birth = self.request.query_params.get(
             "place_of_birth"
         )
+        start_date = self.request.query_params.get(
+            "start_date")
+        end_date = self.request.query_params.get(
+            "end_date")
 
         if username:
             queryset = queryset.filter(
                 username__icontains=username
             )
 
-        if birth_date:
-            queryset = queryset.filter(
-                birth_date=birth_date
-            )
-
         if place_of_birth:
             queryset = queryset.filter(
                 place_of_birth__icontains=place_of_birth
+            )
+
+        if start_date and end_date:
+            queryset = queryset.filter(
+                birth_date__range=[
+                    start_date,
+                    end_date
+                ]
             )
 
         return queryset.distinct()
@@ -130,28 +137,14 @@ class UserViewSet(
         user_you_want_subscribe = self.get_object()
         me = self.request.user
 
-        if self.request.method == "GET":
-            subscribers = user_you_want_subscribe.followers.all()
-            page = self.paginate_queryset(subscribers)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-
-            serializer = self.get_serializer(subscribers, many=True)
-            return Response(serializer.data)
-
         if self.request.method == "POST":
             if me == user_you_want_subscribe:
                 return Response(
-                    {
-                        "detail": "You cannot subscribe to yourself."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "You cannot subscribe to yourself."},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            has_subscribed = me.following.filter(
-                id=user_you_want_subscribe.id
-            ).exists()
+            has_subscribed = me.following.filter(id=user_you_want_subscribe.id).exists()
             if has_subscribed:
                 me.following.remove(user_you_want_subscribe)
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -159,39 +152,75 @@ class UserViewSet(
                 me.following.add(user_you_want_subscribe)
                 return Response(status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, *args, **kwargs):
-        """
-        The endpoint to delete current user's account
-        """
+    def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        me = request.user
+        if instance == self.request.user:
+            return redirect(reverse("user:manage"))
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
-        if instance == me:
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                {
-                    "detail": "You do not have permission to delete this user."
-                },
-                status=status.HTTP_403_FORBIDDEN
-            )
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="start_date",
+                description=(
+                        "Search by date of birth range"
+                        "in format yyyy-mm-dd, "
+                        "example url: "
+                        "/api/users/users/?start_date=2022-06-11&end_date=2022-06-12"
+                ),
+                required=False,
+                type=str
+            ),
+            OpenApiParameter(
+                name="end_date",
+                description=(
+                        "Search by date of birth range"
+                        "in format yyyy-mm-dd, "
+                        "example url: "
+                        "/api/users/users/?start_date=2022-06-11&end_date=2022-06-12"
+                ),
+                required=False,
+                type=str
+            ),
+            OpenApiParameter(
+                name="username",
+                description="Search by username",
+                required=False,
+                type=str
+            ),
+            OpenApiParameter(
+                name="place_of_birth",
+                description=(
+                        "Search by place of birth, "
+                        "for example by city, country, etc."
+                ),
+                required=False,
+                type=str
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """
+        Retrieve a list of users with the
+        ability to filter them by username,
+        date of birth and place of birth.
+        """
+        return super().list(request, *args, **kwargs)
 
 
 class CreateUserView(generics.CreateAPIView):
     serializer_class = CreateUserSerializer
 
 
-class ManageUserView(generics.RetrieveUpdateAPIView):
+class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CreateUserSerializer
 
     def get_object(self):
         return self.request.user
 
 
-class UploadProfilePictureView(
-    APIView
-):
+class UploadProfilePictureView(APIView):
     serializer_class = ProfileImageSerializer
 
     def get_object(self):
@@ -211,12 +240,28 @@ class UploadProfilePictureView(
             serializer.data, status=status.HTTP_200_OK
         )
 
+    def get(self, request, *args, **kwargs):
+        """
+        Method to retrieve profile image
+        """
+        profile = self.get_object()
+        serializer = ProfileImageSerializer(
+            profile
+        )
+        return Response(
+            serializer.data, status.HTTP_200_OK
+        )
+
 
 class LogoutAPIView(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = LogoutSerializer
 
     def post(self, request):
+        """
+        Send a refresh token to this endpoint in order to
+        make it invalid
+        """
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

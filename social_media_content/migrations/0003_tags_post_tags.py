@@ -4,22 +4,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('social_media_content', '0002_comment_user'),
+        ("social_media_content", "0002_comment_user"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Tags',
+            name="Tags",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50, unique=True)),
             ],
         ),
         migrations.AddField(
-            model_name='post',
-            name='tags',
-            field=models.ManyToManyField(related_name='tagged_posts', to='social_media_content.tags'),
+            model_name="post",
+            name="tags",
+            field=models.ManyToManyField(
+                related_name="tagged_posts", to="social_media_content.tags"
+            ),
         ),
     ]
