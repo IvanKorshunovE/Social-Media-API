@@ -25,9 +25,9 @@ urlpatterns = [
     path("logout/", LogoutAPIView.as_view(), name="auth_logout"),
     path("me/", ManageUserView.as_view(), name="manage"),
     path(
-        "me/upload_profile_picture/",
+        "me/profile_picture/",
         UploadProfilePictureView.as_view(),
-        name="upload_profile_picture",
+        name="profile_picture",
     ),
     path("", include(router.urls)),
 ]

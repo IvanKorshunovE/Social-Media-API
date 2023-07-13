@@ -5,7 +5,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, status, mixins
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -38,6 +38,7 @@ class UserViewSet(
     )
     serializer_class = CreateUserSerializer
     pagination_class = UserPagination
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         """
@@ -215,6 +216,7 @@ class CreateUserView(generics.CreateAPIView):
 
 class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CreateUserSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
@@ -222,6 +224,7 @@ class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
 
 class UploadProfilePictureView(APIView):
     serializer_class = ProfileImageSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
