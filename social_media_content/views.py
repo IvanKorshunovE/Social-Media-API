@@ -8,7 +8,6 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
     IsAuthenticated, IsAuthenticatedOrReadOnly
 )
@@ -16,17 +15,12 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from social_media_content.models import Post, Comment
+from social_media_content.pagination import PostPagination
 from social_media_content.permissions import IsOwnerOrReadOnly
 from social_media_content.serializers import (
     PostSerializer,
     CommentSerializer
 )
-
-
-class PostPagination(PageNumberPagination):
-    page_size = 5
-    page_size_query_param = "page_size"
-    max_page_size = 100
 
 
 class CommentViewSet(viewsets.ModelViewSet):
