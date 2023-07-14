@@ -4,13 +4,16 @@ from django.shortcuts import redirect
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, status, mixins
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly
+)
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
+from user.pagination import UserPagination
 from user.serializers import (
     CreateUserSerializer,
     ReadOnlyUserFollowersSerializer,

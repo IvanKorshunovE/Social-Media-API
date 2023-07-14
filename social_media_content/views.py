@@ -24,7 +24,10 @@ from social_media_content.serializers import (
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
+    queryset = (
+        Comment.objects.all()
+        .select_related("user")
+    )
     serializer_class = CommentSerializer
     permission_classes = [IsOwnerOrReadOnly]
 
