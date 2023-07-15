@@ -96,11 +96,6 @@ class PostViewSet(viewsets.ModelViewSet):
             in permission_classes
         ]
 
-    @staticmethod
-    def _params_to_strings(qs):
-        """Converts a string to a list of tag names"""
-        return [name for name in qs.split(",")]
-
     def get_queryset(self):
         queryset = self.queryset
         if self.request.user.is_authenticated:
@@ -116,7 +111,6 @@ class PostViewSet(viewsets.ModelViewSet):
             ).distinct()
         tags = self.request.query_params.get("tags")
         if tags:
-            tags = self._params_to_strings(tags)
             queryset = queryset.filter(
                 tags__name__in=tags
             )
