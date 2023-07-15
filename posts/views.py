@@ -112,7 +112,7 @@ class PostViewSet(viewsets.ModelViewSet):
         tags = self.request.query_params.get("tags")
         if tags:
             queryset = queryset.filter(
-                tags__name__in=tags
+                tags__name__in=tags.split(",")
             )
         return queryset.distinct()
 
