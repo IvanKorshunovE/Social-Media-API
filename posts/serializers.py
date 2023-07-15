@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from social_media_content.models import (
+from posts.models import (
     Post,
     Comment,
 )

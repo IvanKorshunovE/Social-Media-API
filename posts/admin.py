@@ -1,7 +1,9 @@
 from django.contrib import admin
 
-from social_media_content.models import Post, Comment, Tags
+from posts.models import (
+    Post, Comment, Tag
+)
 
 admin.site.register(Post)
 admin.site.register(Comment)
-admin.site.register(Tags)
+admin.site.register(Tag)

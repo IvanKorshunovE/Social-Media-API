@@ -2,8 +2,10 @@ from django.conf import settings
 from django.db import models
 
 
-class Tags(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+class Tag(models.Model):
+    name = models.CharField(
+        max_length=50, unique=True
+    )
 
     class Meta:
         verbose_name_plural = "Tags"
@@ -13,18 +15,24 @@ class Tags(models.Model):
 
 
 class Post(models.Model):
-    title = models.CharField(null=False, max_length=100)
+    title = models.CharField(
+        null=False, max_length=100
+    )
     text = models.TextField()
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(
+        auto_now_add=True
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
     )
     likes = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name="liked_posts",
+        related_name="posts",
     )
-    tags = models.ManyToManyField(Tags, related_name="tagged_posts")
+    tags = models.ManyToManyField(
+        Tag, related_name="posts"
+    )
 
     def __str__(self):
         return self.title
@@ -42,7 +50,7 @@ class Comment(models.Model):
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name="users_comments",
+        related_name="comments",
         on_delete=models.CASCADE,
     )
 

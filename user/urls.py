@@ -29,8 +29,7 @@ urlpatterns = [
         UploadProfilePictureView.as_view(),
         name="profile_picture",
     ),
-    path("", include(router.urls)),
-]
+] + router.urls
 
 
 app_name = "user"

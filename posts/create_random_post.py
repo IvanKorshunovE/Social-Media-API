@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 import friendlywords as fw
-from social_media_content.models import Post
+from posts.models import Post
 
 
 def create_random_post():

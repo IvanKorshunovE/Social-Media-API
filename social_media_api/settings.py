@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
-    "social_media_content",
+    "posts",
     "user",
 ]
 

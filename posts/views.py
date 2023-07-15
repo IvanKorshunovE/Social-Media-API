@@ -1,3 +1,4 @@
+from typing import Type
 from urllib.parse import urlencode
 
 from django.shortcuts import redirect
@@ -14,10 +15,10 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from social_media_content.models import Post, Comment
-from social_media_content.pagination import PostPagination
-from social_media_content.permissions import IsOwnerOrReadOnly
-from social_media_content.serializers import (
+from posts.models import Post, Comment
+from posts.pagination import PostPagination
+from posts.permissions import IsOwnerOrReadOnly
+from posts.serializers import (
     PostSerializer,
     CommentSerializer
 )
@@ -98,7 +99,7 @@ class PostViewSet(viewsets.ModelViewSet):
     @staticmethod
     def _params_to_strings(qs):
         """Converts a string to a list of tag names"""
-        return [str(name) for name in qs.split(",")]
+        return [name for name in qs.split(",")]
 
     def get_queryset(self):
         queryset = self.queryset
@@ -159,22 +160,21 @@ class PostViewSet(viewsets.ModelViewSet):
     def comments(self, request, pk=None):
         """
         Returns all comments related to particular post,
-        this endpoint redirects to 'social_media_content:comment-list'
+        this endpoint redirects to 'posts:comment-list'
         endpoint. The url example is:
         When you type /api/content/posts/1/comments/
         in url bar, you will be redirected to:
         /api/content/comments/?post_id=1
         """
-        if self.request.method == "GET":
-            post = self.get_object()
-            post_id = post.id
-            query_params = urlencode({"post_id": post_id})
-            redirect_url = (
-                    reverse(
-                        "social_media_content:comment-list"
-                    ) + "?" + query_params
-            )
-            return redirect(redirect_url)
+        post = self.get_object()
+        post_id = post.id
+        query_params = urlencode({"post_id": post_id})
+        redirect_url = (
+                reverse(
+                    "posts:comment-list"
+                ) + "?" + query_params
+        )
+        return redirect(redirect_url)
 
     @action(
         methods=["GET"],
@@ -212,7 +212,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 name="tags",
                 description="Filter by tags",
                 required=False,
-                type=str
+                type=Type[list[str]]
             ),
         ]
     )
