@@ -1,6 +1,6 @@
-# Social-Media-API
+# ConnectHere: Navigating Social Interactions and Networking
 
-The Social Media API is a RESTful API for a social media platform. It provides endpoints for user registration, authentication, profile management, post creation and retrieval, social interactions, and more.
+ConnectHere is a RESTful API for a social media platform. It provides endpoints for user registration, authentication, profile management, post creation and retrieval, social interactions, and more.
 
 ## Requirements
 - Python 3.x
