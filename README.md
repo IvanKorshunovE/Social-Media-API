@@ -11,7 +11,7 @@ Powered by Python 3.11, harnessed by the prowess of Django, and fortified by the
 
 ### How to Run
 
-1. Clone the repository: `git clone https://github.com/IvanKorshunovE/Social-Media-API`
+1. Clone the repository: `git clone https://github.com/IvanKorshunovE/connect_here`
 2. Change to the project directory: `cd social-media-api`
 3. Create a virtual environment: `python -m venv venv`
 4. Activate the virtual environment: `source venv/bin/activate`
